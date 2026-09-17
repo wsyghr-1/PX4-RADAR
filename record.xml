@@ -1,0 +1,47 @@
+<enum name="REC_CMD_TYPE">
+	<entry value="0" name="REC_CMD_START"/>
+	<entry value="1" name="REC_CMD_STOP"/>
+	<entry value="2" name="REC_CMD_QUERY"/>
+</enum>
+
+<enum name="REC_RESULT">
+	<entry value="0" name="REC_RESULT_OK"/>
+	<entry value="1" name="REC_RESULT_FAILED"/>
+	<entry value="2" name="REC_RESULT_BUSY"/>
+</enum>
+
+<enum name="REC_STATE">
+	<entry value="0" name="REC_STATE_IDLE"/>
+	<entry value="1" name="REC_STATE_RECORDING"/>
+	<entry value="2" name="REC_STATE_ERROR"/>
+</enum>
+
+<enum name="REC_DATA_TYPE" bitmask="true">
+	<entry value="1" name="REC_DATA_RADAR"/>
+	<entry value="2" name="REC_DATA_VISION"/>
+	<entry value="4" name="REC_DATA_FLIGHT_CONTROL"/>
+</enum>
+
+
+<message id="16002" name="REC_CMD">
+	<description>Record control command.</description>
+	<field type="uint16_t" name="req_id">Request id.</field>
+	<field type="uint8_t" name="cmd" enum="REC_CMD_TYPE">Record command: start, stop or query.</field>
+	<field type="uint32_t" name="data_mask" enum="REC_DATA_TYPE" display="bitmask">Data types to record. Use 0 for default.</field>
+	<field type="char[32]" name="file_name">Record file name.</field>
+</message>
+
+<message id="16003" name="REC_ACK">
+	<description>Record command acknowledgement.</description>
+	<field type="uint16_t" name="req_id">Request id copied from REC_CMD.</field>
+	<field type="uint8_t" name="cmd" enum="REC_CMD_TYPE">Command copied from REC_CMD.</field>
+	<field type="uint8_t" name="result" enum="REC_RESULT">Command result.</field>
+</message>
+
+<message id="16004" name="REC_STATUS">
+	<description>Record status response.</description>
+	<field type="uint16_t" name="req_id">Request id copied from REC_CMD_QUERY. Use 0 for periodic status.</field>
+	<field type="uint8_t" name="state" enum="REC_STATE">Current record state.</field>
+	<field type="uint32_t" name="data_mask" enum="REC_DATA_TYPE" display="bitmask">Current recording data mask.</field>
+	<field type="char[32]" name="file_name">Current record file name.</field>
+</message>

@@ -1,0 +1,12 @@
+menuconfig MODULES_MOTION_DETECTOR
+	bool "motion_detector"
+	default n
+	---help---
+		Enable support for motion_detector
+
+menuconfig USER_MOTION_DETECTOR
+	bool "motion_detector running as userspace module"
+	default n
+	depends on BOARD_PROTECTED && MODULES_MOTION_DETECTOR
+	---help---
+		Put motion_detector in userspace memory
