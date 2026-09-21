@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# board specific sensors init
+#------------------------------------------------------------------------------
+
+board_adc start
+
+
+# internal baro
+spl06 -X -a 0x76 start
+
+# acc && gyro
+icm42688p -R 2 -s start
+
+mavlink start -d /dev/ttyS2 -b 115200
+
+mavlink start -d /dev/ttyS6 -b 921600
