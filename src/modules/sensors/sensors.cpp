@@ -591,6 +591,8 @@ void Sensors::Run()
 			_n_accel = n_accel;
 			_n_gyro = n_gyro;
 
+			// Refresh cached parameters before applying sensor configuration.
+			updateParams();
 			parameters_update();
 		}
 

@@ -79,6 +79,9 @@
 #include "streams/GLOBAL_POSITION_INT.hpp"
 #include "streams/GPS_GLOBAL_ORIGIN.hpp"
 #include "streams/GPS_RAW_INT.hpp"
+#if defined(MAVLINK_MSG_ID_GPS_VELOCITY_NED)
+#include "streams/GPS_VELOCITY_NED.hpp"
+#endif // MAVLINK_MSG_ID_GPS_VELOCITY_NED
 #include "streams/GPS_RTCM_DATA.hpp"
 #include "streams/GPS_STATUS.hpp"
 #include "streams/HEARTBEAT.hpp"
@@ -300,6 +303,9 @@ static const StreamListItem streams_list[] = {
 #if defined(GPS_RAW_INT_HPP)
 	create_stream_list_item<MavlinkStreamGPSRawInt>(),
 #endif // GPS_RAW_INT_HPP
+#if defined(GPS_VELOCITY_NED_HPP)
+	create_stream_list_item<MavlinkStreamGpsVelocityNed>(),
+#endif // GPS_VELOCITY_NED_HPP
 #if defined(GPS2_RAW_HPP)
 	create_stream_list_item<MavlinkStreamGPS2Raw>(),
 #endif // GPS2_RAW_HPP

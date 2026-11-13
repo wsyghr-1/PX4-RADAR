@@ -155,3 +155,30 @@ PARAM_DEFINE_INT32(MAV_HB_FORW_EN, 1);
  * @max 250
  */
 PARAM_DEFINE_INT32(MAV_RADIO_TOUT, 5);
+
+/**
+ * Record: sensor type bitmask
+ *
+ * @min 0
+ * @max 15
+ * @group MAVLink
+ */
+PARAM_DEFINE_INT32(REC_SENSOR_TYPE, 3);
+
+/**
+ * Record: per-sensor data type
+ *
+ * @min 0
+ * @max 65535
+ * @group MAVLink
+ */
+PARAM_DEFINE_INT32(REC_DATA_TYPE, 0);
+
+/**
+ * RC channel for recording trigger
+ *
+ * @min 1
+ * @max 18
+ * @group MAVLink
+ */
+PARAM_DEFINE_INT32(REC_RC_CH, 7);

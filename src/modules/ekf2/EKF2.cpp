@@ -185,7 +185,8 @@ EKF2::EKF2(bool multi_mode, const px4::wq_config_t &config, bool replay_mode):
 	_param_ekf2_er_ctrl(_params->er_ctrl),
 	_param_ekf2_er_qmin(_params->er_quality_minimum),
 	_param_ekf2_erp_noise(_params->er_pos_noise),
-	_param_ekf2_erv_noise(_params->er_vel_noise),
+	_param_ekf2_ervh_noise(_params->er_vel_h_noise),
+	_param_ekf2_ervz_noise(_params->er_vel_z_noise),
 	_param_ekf2_era_noise(_params->er_att_noise),
 	_param_ekf2_erv_gate(_params->er_vel_innov_gate),
 	_param_ekf2_erp_gate(_params->er_pos_innov_gate),
@@ -2594,17 +2595,20 @@ bool EKF2::UpdateExtRadarSample(ekf2_timestamps_s &ekf2_timestamps)
 			if (velocity_frame_valid) {
 				er_data.vel = er_odom_vel;
 
-				const float erv_noise_var = sq(_param_ekf2_erv_noise.get());
+				const float ervh_noise_var = sq(_param_ekf2_ervh_noise.get());
+				const float ervz_noise_var = sq(_param_ekf2_ervz_noise.get());
 
 				// velocity measurement error from er_data or parameters
 				if ((_param_ekf2_er_noise_md.get() == 0) && er_odom_vel_var.isAllFinite()) {
 
-					er_data.velocity_var(0) = fmaxf(erv_noise_var, er_odom_vel_var(0));
-					er_data.velocity_var(1) = fmaxf(erv_noise_var, er_odom_vel_var(1));
-					er_data.velocity_var(2) = fmaxf(erv_noise_var, er_odom_vel_var(2));
+					er_data.velocity_var(0) = fmaxf(ervh_noise_var, er_odom_vel_var(0));
+					er_data.velocity_var(1) = fmaxf(ervh_noise_var, er_odom_vel_var(1));
+					er_data.velocity_var(2) = fmaxf(ervz_noise_var, er_odom_vel_var(2));
 
 				} else {
-					er_data.velocity_var.setAll(erv_noise_var);
+					er_data.velocity_var(0) = ervh_noise_var;
+					er_data.velocity_var(1) = ervh_noise_var;
+					er_data.velocity_var(2) = ervz_noise_var;
 				}
 
 				new_er_odom = true;

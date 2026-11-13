@@ -1045,7 +1045,20 @@ PARAM_DEFINE_FLOAT(COM_THROW_SPEED, 5);
  */
 PARAM_DEFINE_INT32(COM_FLTT_LOW_ACT, 3);
 
-PARAM_DEFINE_INT32(POS_FUSION_RC, -1);
+/**
+ * RC channel for position fusion source selection
+ *
+ * Set to the RC channel number: 6 = CH6, 7 = CH7.
+ * Set to 0 to disable switching.
+ * Low: VIO, middle: GPS, high: RIO.
+ *
+ * @min 0
+ * @max 18
+ * @value 0 Disabled
+ * @increment 1
+ * @group Commander
+ */
+PARAM_DEFINE_INT32(POS_FUSION_RC, 0);
 
 
 

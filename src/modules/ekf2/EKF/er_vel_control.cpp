@@ -120,10 +120,9 @@ void Ekf::controlErVelFusion(const extRadarSample &er_sample, const bool common_
 	const Vector3f measurement{vel};
 
 	const Vector3f measurement_var{
-		math::max(vel_cov(0, 0), sq(_params.er_vel_noise), sq(0.01f)),
-		//TODO:vy noise
-		math::max(vel_cov(1, 1), sq(2.0f *_params.er_vel_noise), sq(0.01f)),
-		math::max(vel_cov(2, 2), sq(_params.er_vel_noise), sq(0.01f))
+		math::max(vel_cov(0, 0), sq(_params.er_vel_h_noise), sq(0.01f)),
+		math::max(vel_cov(1, 1), sq(_params.er_vel_h_noise), sq(0.01f)),
+		math::max(vel_cov(2, 2), sq(_params.er_vel_z_noise), sq(0.01f))
 	};
 
 	const bool measurement_valid = measurement.isAllFinite() && measurement_var.isAllFinite();

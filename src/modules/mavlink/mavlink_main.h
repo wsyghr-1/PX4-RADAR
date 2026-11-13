@@ -542,6 +542,15 @@ private:
 	uORB::Subscription _event_sub{ORB_ID(event)};
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
 	uORB::Subscription _record_control_sub{ORB_ID(record_control)};
+	uORB::Subscription _input_rc_sub{ORB_ID(input_rc)};
+	uORB::Publication<record_control_s> _record_control_pub{ORB_ID(record_control)};
+
+	// RC 双触发录取状态机
+	static constexpr uint32_t RC_TOGGLE_TIMEOUT_US = 3'000'000;  // 3秒
+	uint32_t _rc_last_toggle_us{0};
+	bool _rc_last_high{false};
+	bool _rc_first_toggle{false};
+	uint16_t _rec_req_id{0};       // REC_CMD请求ID递增
 	uORB::Subscription _vehicle_command_sub{ORB_ID(vehicle_command)};
 	uORB::Subscription _vehicle_command_ack_sub{ORB_ID(vehicle_command_ack)};
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
@@ -667,7 +676,10 @@ private:
 		(ParamBool<px4::params::MAV_HB_FORW_EN>) _param_mav_hb_forw_en,
 		(ParamInt<px4::params::MAV_RADIO_TOUT>)      _param_mav_radio_timeout,
 		(ParamInt<px4::params::SYS_HITL>) _param_sys_hitl,
-		(ParamBool<px4::params::SYS_FAILURE_EN>) _param_sys_failure_injection_enabled
+		(ParamBool<px4::params::SYS_FAILURE_EN>) _param_sys_failure_injection_enabled,
+		(ParamInt<px4::params::REC_SENSOR_TYPE>) _param_rec_sensor_type,
+		(ParamInt<px4::params::REC_DATA_TYPE>) _param_rec_data_type,
+		(ParamInt<px4::params::REC_RC_CH>) _param_rec_rc_channel
 	)
 
 	perf_counter_t _loop_perf{perf_alloc(PC_ELAPSED, MODULE_NAME": tx run elapsed")};                      /**< loop performance counter */

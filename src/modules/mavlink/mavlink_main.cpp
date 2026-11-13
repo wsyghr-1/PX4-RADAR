@@ -1491,6 +1491,9 @@ Mavlink::configure_streams_to_default(const char *configure_single_stream)
 		// configure_stream_local("GPS2_RAW", unlimited_rate);
 		configure_stream_local("GPS_GLOBAL_ORIGIN", 1.0f);
 		configure_stream_local("GPS_RAW_INT", unlimited_rate);
+#if defined(MAVLINK_MSG_ID_GPS_VELOCITY_NED)
+		configure_stream_local("GPS_VELOCITY_NED", unlimited_rate);
+#endif // MAVLINK_MSG_ID_GPS_VELOCITY_NED
 		// configure_stream_local("GPS_STATUS", 1.0f);
 		configure_stream_local("HOME_POSITION", 0.5f);
 		// configure_stream_local("HYGROMETER_SENSOR", 1.0f);
@@ -1518,7 +1521,7 @@ Mavlink::configure_streams_to_default(const char *configure_single_stream)
 		// configure_stream_local("DEBUG", 10.0f);
 		// configure_stream_local("DEBUG_FLOAT_ARRAY", 10.0f);
 		// configure_stream_local("DEBUG_VECT", 10.0f);
-		// configure_stream_local("NAMED_VALUE_FLOAT", 10.0f);
+		configure_stream_local("NAMED_VALUE_FLOAT", 1.0f);
 		// configure_stream_local("LINK_NODE_STATUS", 1.0f);
 #if defined(MAVLINK_MSG_ID_FIGURE_EIGHT_EXECUTION_STATUS)
 		// configure_stream_local("FIGURE_EIGHT_EXECUTION_STATUS", 5.0f);
@@ -2417,9 +2420,45 @@ Mavlink::task_main(int argc, char *argv[])
 					mavlink_rec_cmd_t rec_cmd{};
 					rec_cmd.req_id = record_control.req_id;
 					rec_cmd.cmd = record_control.cmd;
+					rec_cmd.sensor_type = record_control.sensor_type;
+					rec_cmd.record_data_type = record_control.record_data_type;
 					rec_cmd.data_mask = record_control.data_mask;
 					memcpy(rec_cmd.file_name, record_control.file_name, sizeof(rec_cmd.file_name));
 					mavlink_msg_rec_cmd_send_struct(get_channel(), &rec_cmd);
+				}
+			}
+		}
+
+		// RC 双触发录取控制: CH7两次高位→START, 两次低位→STOP
+		if (_input_rc_sub.updated()) {
+			input_rc_s input_rc;
+			_input_rc_sub.copy(&input_rc);
+			if (_param_rec_rc_channel.get() < (int)(sizeof(input_rc.values) / sizeof(input_rc.values[0]))) {
+				bool high = (input_rc.values[_param_rec_rc_channel.get()] > 1500);
+				if (high != _rc_last_high) {
+					_rc_last_high = high;
+					uint32_t now = input_rc.timestamp;
+					if (_rc_first_toggle && (now - _rc_last_toggle_us < RC_TOGGLE_TIMEOUT_US)) {
+						record_control_s rec_ctrl{};
+						rec_ctrl.timestamp = hrt_absolute_time();
+						rec_ctrl.message_type = record_control_s::MESSAGE_TYPE_COMMAND;
+						rec_ctrl.mavlink_channel = record_control_s::MAVLINK_CHANNEL_ALL;
+						rec_ctrl.req_id = ++_rec_req_id;
+						rec_ctrl.sensor_type = static_cast<uint8_t>(_param_rec_sensor_type.get());
+						rec_ctrl.record_data_type = static_cast<uint16_t>(_param_rec_data_type.get());
+						if (high) {
+							rec_ctrl.cmd = record_control_s::CMD_START;
+							snprintf(rec_ctrl.file_name, sizeof(rec_ctrl.file_name), "rec_%lu", (unsigned long)rec_ctrl.timestamp);
+						} else {
+							rec_ctrl.cmd = record_control_s::CMD_STOP;
+						}
+						_record_control_pub.publish(rec_ctrl);
+						_rc_first_toggle = false;
+						mavlink_log_info(&_mavlink_log_pub, "REC: %s CH%d", high ? "START" : "STOP", (int)_param_rec_rc_channel.get());
+					} else {
+						_rc_first_toggle = true;
+						_rc_last_toggle_us = now;
+					}
 				}
 			}
 		}

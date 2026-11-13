@@ -208,9 +208,9 @@ private:
 			vehicle_acceleration_filter_s accel_filter{};
 			if(_vehicle_acceleration_filter_sub.update(&accel_filter))
 			{
-				msg.xacc = accel_filter.xyz[0] - accel_bias(0);
-				msg.yacc = accel_filter.xyz[1] - accel_bias(1);
-				msg.zacc = accel_filter.xyz[2] - accel_bias(2);
+				msg.xacc = accel_filter.xyz[0];
+				msg.yacc = accel_filter.xyz[1];
+				msg.zacc = accel_filter.xyz[2];
 			}
 
 			vehicle_angular_velocity_s angular_velocity{};
