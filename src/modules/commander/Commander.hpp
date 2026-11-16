@@ -55,6 +55,7 @@
 #include <uORB/Publication.hpp>
 #include <uORB/topics/actuator_armed.h>
 #include <uORB/topics/actuator_test.h>
+#include <uORB/topics/debug_key_value.h>
 #include <uORB/topics/failure_detector_status.h>
 #include <uORB/topics/vehicle_command_ack.h>
 #include <uORB/topics/vehicle_control_mode.h>
@@ -142,6 +143,7 @@ private:
 	void answer_command(const vehicle_command_s &cmd, uint8_t result);
 
 	void check_er_valid();
+	void publish_radar_state();
 
 	transition_result_t arm(arm_disarm_reason_t calling_reason, bool run_preflight_checks = true);
 
@@ -299,6 +301,9 @@ private:
 	bool _status_changed{true};
 
 	bool _er_radar_valid{false};
+	hrt_abstime _last_radar_odometry_timestamp{0};
+	hrt_abstime _last_radar_state_publish{0};
+	bool _last_radar_odometry_valid{false};
 
 	pos_mode _last_pos_mode = pos_mode::UNDEFINED;
 
@@ -345,6 +350,7 @@ private:
 	// Publications
 	uORB::Publication<actuator_armed_s>			_actuator_armed_pub{ORB_ID(actuator_armed)};
 	uORB::Publication<actuator_test_s>			_actuator_test_pub{ORB_ID(actuator_test)};
+	uORB::Publication<debug_key_value_s>			_radar_state_pub{ORB_ID(debug_key_value)};
 	uORB::Publication<failure_detector_status_s>		_failure_detector_status_pub{ORB_ID(failure_detector_status)};
 	uORB::Publication<vehicle_command_ack_s>		_vehicle_command_ack_pub{ORB_ID(vehicle_command_ack)};
 	uORB::Publication<vehicle_command_s>			_vehicle_command_pub{ORB_ID(vehicle_command)};

@@ -468,7 +468,8 @@ struct parameters {
 	int32_t er_ctrl{0};
 	float er_delay_ms{175.0f};              ///< off-board radar measurement delay relative to the IMU (mSec)
 
-	float er_vel_noise{0.1f};               ///< minimum allowed observation noise for ER velocity fusion (m/sec)
+	float er_vel_h_noise{0.1f};             ///< minimum allowed observation noise for ER horizontal velocity fusion (m/sec)
+	float er_vel_z_noise{0.1f};             ///< minimum allowed observation noise for ER vertical velocity fusion (m/sec)
 	float er_pos_noise{0.1f};               ///< minimum allowed observation noise for ER position fusion (m)
 	float er_att_noise{0.1f};               ///< minimum allowed observation noise for ER attitude fusion (rad/sec)
 	int32_t er_quality_minimum{0};          ///< radar minimum acceptable quality integer

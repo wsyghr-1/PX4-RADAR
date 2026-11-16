@@ -1805,6 +1805,7 @@ void Commander::run()
 		battery_status_check();
 
 		check_er_valid();
+		publish_radar_state();
 
 		pos_mode_switch();
 
@@ -2663,6 +2664,43 @@ void Commander::check_er_valid()
     }
 }
 
+void Commander::publish_radar_state()
+{
+	vehicle_odometry_s radar_odometry{};
+
+	if (_radar_odometry_sub.update(&radar_odometry)) {
+		_last_radar_odometry_timestamp = radar_odometry.timestamp;
+		_last_radar_odometry_valid = radar_odometry.quality > 0;
+	}
+
+	const hrt_abstime now = hrt_absolute_time();
+
+	// Publish the radar state at 2 Hz.
+	if ((now - _last_radar_state_publish) < 500_ms) {
+		return;
+	}
+
+	_last_radar_state_publish = now;
+
+	// No RADAR_ODOMETRY received for one second means that the radar is offline.
+	const bool radar_message_fresh = _last_radar_odometry_timestamp != 0
+					 && (now - _last_radar_odometry_timestamp) < 1_s;
+
+	float radar_state = 0.f;
+
+	if (radar_message_fresh) {
+		radar_state = _last_radar_odometry_valid ? 2.f : 1.f;
+	}
+
+	debug_key_value_s debug{};
+	debug.timestamp = now;
+	strncpy(debug.key, "RAD_STATE", sizeof(debug.key));
+	debug.key[sizeof(debug.key) - 1] = '\0';
+	debug.value = radar_state;
+
+	_radar_state_pub.publish(debug);
+}
+
 
 int Commander::task_spawn(int argc, char *argv[])
 {
@@ -2925,34 +2963,17 @@ void Commander::pos_mode_switch()
 		}
 	}
 
-	// RC channel selection (robust against 0/1-based configs)
-	// Convention: many PX4 params use 0 = disabled, 1..N = channel number.
-	const int ch_param = _param_pos_fusion_rc.get();
+	// 0 = disabled; 1..18 directly selects RC channel 1..18.
+	const int channel = _param_pos_fusion_rc.get();
 
-	if (ch_param <= 0) {
-		return; // disabled / invalid
-	}
-
-	int idx = ch_param;          // assume 0-based
-	int idx_alt = ch_param - 1;  // 1-based
-
-	// Prefer valid index; fall back to alternate if needed
-	const int max_ch = (int)_rc.channel_count;
-
-	if (max_ch <= 0) {
+	if (channel <= 0
+	    || channel > input_rc_s::RC_INPUT_MAX_CHANNELS
+	    || channel > _rc.channel_count) {
 		return;
 	}
 
-	if (idx < 0 || idx >= max_ch) {
-		if (idx_alt >= 0 && idx_alt < max_ch) {
-			idx = idx_alt;
-
-		} else {
-			return;
-		}
-	}
-
-	const int rc_value = _rc.values[idx];
+	// Convert the channel number to a zero-based array index.
+	const int rc_value = _rc.values[channel - 1];
 
 	pos_mode requested_mode = pos_mode::UNDEFINED;
 

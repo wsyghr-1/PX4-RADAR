@@ -157,14 +157,14 @@ void Ekf::controlErHeightFusion(const extRadarSample &er_sample, const bool comm
 					case VelocityFrame::LOCAL_FRAME_NED:
 					case VelocityFrame::LOCAL_FRAME_FRD: {
 							const Vector3f reset_vel = er_sample.vel - vel_offset_earth;
-							resetVerticalVelocityTo(reset_vel(2), math::max(er_sample.velocity_var(2), sq(_params.er_vel_noise)));
+							resetVerticalVelocityTo(reset_vel(2), math::max(er_sample.velocity_var(2), sq(_params.er_vel_z_noise)));
 						}
 						break;
 
 					case VelocityFrame::BODY_FRAME_FRD: {
 							const Vector3f reset_vel = _R_to_earth * (er_sample.vel - vel_offset_body);
 							const Matrix3f reset_vel_cov = _R_to_earth * matrix::diag(er_sample.velocity_var) * _R_to_earth.transpose();
-							resetVerticalVelocityTo(reset_vel(2), math::max(reset_vel_cov(2, 2), sq(_params.er_vel_noise)));
+							resetVerticalVelocityTo(reset_vel(2), math::max(reset_vel_cov(2, 2), sq(_params.er_vel_z_noise)));
 						}
 						break;
 					}

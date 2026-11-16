@@ -736,10 +736,19 @@ parameters:
       min: 0.01
       unit: m
       decimal: 2
-    EKF2_ERV_NOISE:
+    EKF2_ERVH_NOISE:
       description:
-        short: Measurement noise for radar velocity observations used to lower bound
-          or replace the uncertainty included in the message
+        short: Measurement noise for radar horizontal velocity observations used to
+          lower bound or replace the uncertainty included in the message
+      type: float
+      default: 0.1
+      min: 0.01
+      unit: m/s
+      decimal: 2
+    EKF2_ERVZ_NOISE:
+      description:
+        short: Measurement noise for radar vertical velocity observations used to
+          lower bound or replace the uncertainty included in the message
       type: float
       default: 0.1
       min: 0.01

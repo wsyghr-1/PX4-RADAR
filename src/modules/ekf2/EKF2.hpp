@@ -732,8 +732,10 @@ private:
 		(ParamExtInt<px4::params::EKF2_ER_QMIN>) _param_ekf2_er_qmin,
 		(ParamExtFloat<px4::params::EKF2_ERP_NOISE>)
 		_param_ekf2_erp_noise, ///< default position observation noise for exernal radar measurements (m)
-		(ParamExtFloat<px4::params::EKF2_ERV_NOISE>)
-		_param_ekf2_erv_noise, ///< default velocity observation noise for exernal radar measurements (m/s)
+		(ParamExtFloat<px4::params::EKF2_ERVH_NOISE>)
+		_param_ekf2_ervh_noise, ///< default horizontal velocity observation noise for external radar measurements (m/s)
+		(ParamExtFloat<px4::params::EKF2_ERVZ_NOISE>)
+		_param_ekf2_ervz_noise, ///< default vertical velocity observation noise for external radar measurements (m/s)
 		(ParamExtFloat<px4::params::EKF2_ERA_NOISE>)
 		_param_ekf2_era_noise, ///< default angular observation noise for exernal radar measurements (rad)
 		(ParamExtFloat<px4::params::EKF2_ERV_GATE>)

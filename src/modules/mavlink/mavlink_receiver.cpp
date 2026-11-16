@@ -1391,10 +1391,73 @@ MavlinkReceiver::handle_message_rec_status(mavlink_message_t *msg)
 	record_control.source_component = msg->compid;
 	record_control.req_id = rec_status.req_id;
 	record_control.state = rec_status.state;
+	record_control.sensor_type = rec_status.sensor_type;
+	record_control.record_data_type = rec_status.record_data_type;
 	record_control.data_mask = rec_status.data_mask;
+	record_control.elapsed_s = rec_status.elapsed_s;
+	record_control.frame_count = rec_status.frame_count;
+	record_control.written_mib = rec_status.written_mib;
+	record_control.free_mib = rec_status.free_mib;
+	record_control.error_code = rec_status.error_code;
 	memcpy(record_control.file_name, rec_status.file_name, sizeof(record_control.file_name));
 
 	_record_control_pub.publish(record_control);
+
+	// 结构化状态继续转发；标准 QGC 通过下方 STATUSTEXT 显示录取进度。
+	Mavlink::forward_message(msg, _mavlink);
+
+	const hrt_abstime now = hrt_absolute_time();
+	const bool state_changed = rec_status.state != _rec_last_status_state;
+	const bool progress_due = rec_status.state == REC_STATE_RECORDING
+				  && now - _rec_last_status_log >= 5'000'000;
+
+	if (state_changed || progress_due) {
+		const unsigned elapsed_min = rec_status.elapsed_s / 60U;
+		const unsigned elapsed_sec = rec_status.elapsed_s % 60U;
+		const unsigned long free_gib = rec_status.free_mib / 1024U;
+		const unsigned long free_gib_tenth =
+			((rec_status.free_mib % 1024U) * 10U) / 1024U;
+
+		switch (rec_status.state) {
+		case REC_STATE_IDLE:
+			mavlink_log_info(&_mavlink_log_pub, "REC IDLE FREE:%lu.%luG",
+					 free_gib, free_gib_tenth);
+			break;
+		case REC_STATE_STARTING:
+			mavlink_log_info(&_mavlink_log_pub, "REC STARTING");
+			break;
+		case REC_STATE_WAIT_DATA:
+			mavlink_log_info(&_mavlink_log_pub, "REC START %.32s", rec_status.file_name);
+			break;
+		case REC_STATE_VALIDATING:
+			mavlink_log_info(&_mavlink_log_pub, "REC VALIDATING DATA");
+			break;
+		case REC_STATE_RECORDING:
+			mavlink_log_info(&_mavlink_log_pub, "REC RUN %02u:%02u F:%lu ADC:%luM FREE:%lu.%luG",
+					 elapsed_min, elapsed_sec,
+					 (unsigned long)rec_status.frame_count,
+					 (unsigned long)rec_status.written_mib,
+					 free_gib, free_gib_tenth);
+			break;
+		case REC_STATE_STOPPING:
+			mavlink_log_info(&_mavlink_log_pub, "REC STOPPING");
+			break;
+		case REC_STATE_COMPLETED:
+			mavlink_log_info(&_mavlink_log_pub, "REC DONE %.32s", rec_status.file_name);
+			break;
+		case REC_STATE_ERROR:
+		default:
+			mavlink_log_critical(&_mavlink_log_pub, "REC ERROR E:%u F:%lu ADC:%luM FREE:%lu.%luG",
+					 (unsigned)rec_status.error_code,
+					 (unsigned long)rec_status.frame_count,
+					 (unsigned long)rec_status.written_mib,
+					 free_gib, free_gib_tenth);
+			break;
+		}
+
+		_rec_last_status_state = rec_status.state;
+		_rec_last_status_log = now;
+	}
 }
 
 void

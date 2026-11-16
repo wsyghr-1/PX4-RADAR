@@ -26,6 +26,11 @@ uint8 result
 uint8 STATE_IDLE = 0
 uint8 STATE_RECORDING = 1
 uint8 STATE_ERROR = 2
+uint8 STATE_STARTING = 3
+uint8 STATE_WAIT_DATA = 4
+uint8 STATE_VALIDATING = 5
+uint8 STATE_STOPPING = 6
+uint8 STATE_COMPLETED = 7
 uint8 state
 
 uint32 DATA_RADAR = 1
@@ -34,7 +39,16 @@ uint32 DATA_FLIGHT_CONTROL = 4
 uint32 DATA_MASK_SUPPORTED = 7
 uint32 data_mask
 
+uint8 sensor_type        # 哪些传感器: bit0=雷达, bit1=视觉, bit2=LiDAR, bit3=TOF
+uint16 record_data_type  # 每传感器2bits数据类型
+
 uint16 req_id
 char[32] file_name
+
+uint32 elapsed_s
+uint32 frame_count
+uint32 written_mib
+uint32 free_mib
+uint16 error_code
 
 uint8 ORB_QUEUE_LENGTH = 4
